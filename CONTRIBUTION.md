@@ -1,4 +1,3 @@
-# PSRank Frontend Contribution
 
 ## Contributor
 
@@ -25,10 +24,10 @@ Dashboard interface and member login screen for the PSRank internal hackathon pl
 
 The following screenshots :
 
-![Signed-out PSRank dashboard](docs/screenshots/dashboard.png)
+![PSRank dashboard](psrank/docs/Dashboard.png)
 
-![PSRank member login screen](docs/screenshots/member-login.png)
 
+![PSRank member login](psrank/docs/member_login.png)
 
 ## Dry-run status
 
