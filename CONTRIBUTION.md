@@ -1,4 +1,3 @@
-# PSRank Frontend Contribution
 
 ## Contributor
 
@@ -27,8 +26,8 @@ The following screenshots :
 
 ![PSRank dashboard](psrank/docs/Dashboard.png)
 
-![PSRank member login](psrank/docs/member_login.png)
 
+![PSRank member login](psrank/docs/member_login.png)
 
 ## Dry-run status
 
