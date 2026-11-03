@@ -10,7 +10,7 @@ function LoginPage({ onSignIn, redirecting }) {
         <p className="login-description">Sign in to explore and rank community problem statements.</p>
         <button className="github-button" type="button" onClick={onSignIn} disabled={redirecting}>
           <GithubIcon className="github-icon" />
-          <span>{redirecting ? "Connecting to GitHub…" : "Continue with GitHub"}</span>
+          <span>{redirecting ? "Connecting to GitHub…" : "Sign in or create an account"}</span>
         </button>
         <p className="login-helper">New here? Signing in with GitHub creates your account.</p>
       </section>
