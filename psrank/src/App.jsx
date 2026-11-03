@@ -88,11 +88,13 @@ function App() {
         <a className="brand" href="#dashboard" aria-label="PSRank dashboard">
           PS<span>Rank</span>
         </a>
-        <nav aria-label="Main navigation">
-          <a className={route === "dashboard" ? "active" : ""} href="#dashboard">Dashboard</a>
-          <a className={route === "rankings" ? "active" : ""} href="#rankings">Rankings</a>
-          <a className={route === "submit" ? "active" : ""} href="#submit">Submit a problem</a>
-        </nav>
+        {user && (
+          <nav aria-label="Main navigation">
+            <a className={route === "dashboard" ? "active" : ""} href="#dashboard">Dashboard</a>
+            <a className={route === "rankings" ? "active" : ""} href="#rankings">Rankings</a>
+            <a className={route === "submit" ? "active" : ""} href="#submit">Submit a problem</a>
+          </nav>
+        )}
         <div className="user-menu">
           {user ? (
             <>
@@ -102,11 +104,8 @@ function App() {
             </>
           ) : (
             <>
-              <button className="login-link nav-login-button" type="button" onClick={signInWithGithub} disabled={redirecting}>
-                Log in
-              </button>
               <button className="login-button signup-nav-button" type="button" onClick={signInWithGithub} disabled={redirecting}>
-                {redirecting ? "Redirecting…" : "Sign up with GitHub"}
+                {redirecting ? "Redirecting…" : "Sign in with GitHub"}
               </button>
             </>
           )}
@@ -115,7 +114,7 @@ function App() {
 
       {authError && <p className="global-error" role="alert">{authError}</p>}
 
-      {route === "login" ? (
+      {!user ? (
         <LoginPage onSignIn={signInWithGithub} redirecting={redirecting} />
       ) : route === "rankings" ? (
         <RankingsPage />
