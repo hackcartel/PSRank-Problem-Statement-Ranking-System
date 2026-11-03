@@ -1,172 +1,135 @@
-import { supabase } from "./lib/supabaseClient";
 import { useEffect, useState } from "react";
+import { supabase } from "./lib/supabaseClient";
+import { MOCK_PROBLEMS } from "./mockData";
+import LoginPage from "./components/LoginPage";
+import RankingsPage from "./components/RankingsPage";
+import SubmitPage from "./components/SubmitPage";
+import "./App.css";
 
 function App() {
-  const [showLogin, setShowLogin] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [loginError, setLoginError] = useState("");
   const [user, setUser] = useState(null);
+  const [sessionLoading, setSessionLoading] = useState(true);
+  const [redirecting, setRedirecting] = useState(false);
+  const [authError, setAuthError] = useState("");
+  const [route, setRoute] = useState(() => window.location.hash.slice(1) || "dashboard");
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user);
-    });
-
+    let active = true;
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!active) return;
       setUser(session?.user ?? null);
+      setSessionLoading(false);
+      setRedirecting(false);
+      if (session?.user) setAuthError("");
     });
 
-    return () => subscription.unsubscribe();
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (!active) return;
+      if (error) setAuthError(error.message);
+      setUser(data.session?.user ?? null);
+      setSessionLoading(false);
+    }).catch((error) => {
+      if (!active) return;
+      setAuthError(error instanceof Error ? error.message : "Could not check your session.");
+      setSessionLoading(false);
+    });
+
+    const onHashChange = () => setRoute(window.location.hash.slice(1) || "dashboard");
+    window.addEventListener("hashchange", onHashChange);
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+      window.removeEventListener("hashchange", onHashChange);
+    };
   }, []);
 
-  async function handleLogout() {
-    const { error } = await supabase.auth.signOut();
-
-    if (error) {
-      setLoginError(error.message);
-    } else {
-      setShowLogin(false);
-      setLoginError("");
+  async function signInWithGithub() {
+    setAuthError("");
+    setRedirecting(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "github",
+        options: { redirectTo: window.location.origin },
+      });
+      if (error) throw error;
+    } catch (error) {
+      setAuthError(error instanceof Error ? error.message : "GitHub sign-in could not be started.");
+      setRedirecting(false);
     }
   }
 
-  async function handleLogin(event) {
-    event.preventDefault();
-    setLoading(true);
-    setLoginError("");
-
-    const formData = new FormData(event.currentTarget);
-    const email = formData.get("email");
-    const password = formData.get("password");
-
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    setLoading(false);
-
-    if (error) {
-      setLoginError(error.message);
-      return;
+  async function signOut() {
+    setAuthError("");
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) setAuthError(error.message);
+    } catch (error) {
+      setAuthError(error instanceof Error ? error.message : "Could not sign out.");
     }
+  }
 
-    setShowLogin(false);
+  const username = user?.user_metadata?.user_name || user?.email || "GitHub user";
+  const avatarUrl = user?.user_metadata?.avatar_url;
+
+  if (sessionLoading) {
+    return (
+      <main className="session-loading" aria-live="polite">
+        <span className="loading-spinner" aria-hidden="true" />
+        <p>Checking your session…</p>
+      </main>
+    );
   }
 
   return (
-    <main className="dashboard">
+    <div className="app-shell">
       <header className="topbar">
-        <a
-          className="brand"
-          href="#dashboard"
-          onClick={() => setShowLogin(false)}
-        >
+        <a className="brand" href="#dashboard" aria-label="PSRank dashboard">
           PS<span>Rank</span>
         </a>
-
         <nav aria-label="Main navigation">
-          <a className="active" href="#dashboard" onClick={() => setShowLogin(false)}>
-            Dashboard
-          </a>
-          <a href="#rankings" onClick={() => setShowLogin(false)}>
-            Rankings
-          </a>
-          <a href="#submit" onClick={() => setShowLogin(false)}>
-            Submit a problem
-          </a>
+          <a className={route === "dashboard" ? "active" : ""} href="#dashboard">Dashboard</a>
+          <a className={route === "rankings" ? "active" : ""} href="#rankings">Rankings</a>
+          <a className={route === "submit" ? "active" : ""} href="#submit">Submit a problem</a>
         </nav>
-
-        {user ? (
-          <div className="user-menu">
-            <span className="user-email">{user.email}</span>
-            <button className="login-button" type="button" onClick={handleLogout}>
-              Log out
-            </button>
-          </div>
-        ) : (
-          <button
-            className="login-button"
-            type="button"
-            onClick={() => setShowLogin(true)}
-          >
-            Log in
-          </button>
-        )}
+        <div className="user-menu">
+          {user ? (
+            <>
+              {avatarUrl && <img className="user-avatar" src={avatarUrl} alt={`${username}'s GitHub avatar`} />}
+              <span className="user-name" title={username}>{username}</span>
+              <button className="login-button" type="button" onClick={signOut}>Log out</button>
+            </>
+          ) : (
+            <>
+              <button className="login-link nav-login-button" type="button" onClick={signInWithGithub} disabled={redirecting}>
+                Log in
+              </button>
+              <button className="login-button signup-nav-button" type="button" onClick={signInWithGithub} disabled={redirecting}>
+                {redirecting ? "Redirecting…" : "Sign up with GitHub"}
+              </button>
+            </>
+          )}
+        </div>
       </header>
 
-      {showLogin ? (
-        <section className="login-page">
-          <button
-            className="back-button"
-            type="button"
-            onClick={() => setShowLogin(false)}
-          >
-            ← Back to dashboard
-          </button>
+      {authError && <p className="global-error" role="alert">{authError}</p>}
 
-          <div className="login-card">
-            <p className="eyebrow">WELCOME TO HACKCARTEL</p>
-            <h1>Member login</h1>
-            <p className="login-description">
-              Sign in to continue to PSRank.
-            </p>
-
-            <form onSubmit={handleLogin}>
-              <label htmlFor="email">Email address</label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="you@example.com"
-                autoComplete="email"
-                required
-              />
-
-              <label htmlFor="password">Password</label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="Enter your password"
-                autoComplete="current-password"
-                required
-              />
-              
-              {loginError && <p className="login-error">{loginError}</p>}
-
-              <button className="primary-button submit-button" type="submit" disabled={loading}>
-                {loading ? "Signing in..." : "Log in"}
-              </button>
-            </form>
-
-            <p className="form-note">
-              Your HackCartel account will be used to sign in.
-            </p>
-          </div>
-        </section>
+      {route === "login" ? (
+        <LoginPage onSignIn={signInWithGithub} redirecting={redirecting} />
+      ) : route === "rankings" ? (
+        <RankingsPage />
+      ) : route === "submit" ? (
+        <SubmitPage user={user} onSignIn={signInWithGithub} redirecting={redirecting} />
       ) : (
-        <>
+        <main className="dashboard">
           <section className="welcome" id="dashboard">
-            {user && (
-              <p className="signed-in-message">
-                Signed in as {user.email}
-              </p>
-            )}
+            {user && <p className="signed-in-message">Signed in as {username}</p>}
             <p className="eyebrow">HACKCARTEL · PROBLEM STATEMENTS</p>
             <h1>Find the next problem<br />worth solving.</h1>
-            <p className="intro">
-              Explore the community’s problem statements and see what’s rising to the top.
-            </p>
-            <button className="primary-button" type="button" onClick={() => {
-              document.getElementById("rankings")?.scrollIntoView({ behavior: "smooth" });
-            }}>
-              Explore rankings <span aria-hidden="true">→</span>
-            </button>
+            <p className="intro">Explore the community’s problem statements and see what’s rising to the top.</p>
+            <a className="primary-button" href="#rankings">Explore rankings <span aria-hidden="true">→</span></a>
           </section>
-
           <section className="ranking-section" id="rankings">
             <div className="section-heading">
               <div>
@@ -175,18 +138,28 @@ function App() {
               </div>
               <a className="view-all" href="#rankings">View all →</a>
             </div>
-
-            <div className="empty-state">
-              <div className="empty-icon" aria-hidden="true">✳</div>
-              <h3>Rankings are getting ready</h3>
-              <p>Submitted problem statements will appear here once they’ve been scored.</p>
+            <div className="ranking-preview">
+              {MOCK_PROBLEMS.slice()
+                .sort((a, b) => b.score - a.score || new Date(a.created_at) - new Date(b.created_at))
+                .slice(0, 3)
+                .map((item, index) => (
+                  <article className="preview-row" key={item.id}>
+                    <span className={`rank-number rank-${index + 1}`}>{index + 1}</span>
+                    <div>
+                      <h3>{item.title}</h3>
+                      <span className="category-chip">{item.category}</span>
+                    </div>
+                    <strong className="preview-score">{item.score}<span>/100</span></strong>
+                  </article>
+                ))}
             </div>
+            <a className="primary-button" href="#rankings">View all rankings <span aria-hidden="true">→</span></a>
           </section>
-
-          <footer>Made for the HackCartel community</footer>
-        </>
+        </main>
       )}
-    </main>
+
+      <footer>Built by HackCartel</footer>
+    </div>
   );
 }
 
