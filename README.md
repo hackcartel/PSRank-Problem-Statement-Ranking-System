@@ -18,23 +18,17 @@ The objective is to make problem statement evaluation and comparison simple, str
 ```text
               DASHBOARD
                   |
-          AUTHENTICATION
-           /          \
-      ADMIN LOGIN   MEMBER LOGIN
-           \          /
+   GITHUB SIGN-IN (VIA SUPABASE)
                   |
-              TEXT INPUT
-           (Upload Problem
-              Statement)
+       SUBMIT PROBLEM STATEMENT
                   |
-               ANALYZER
-          (Generate PS Score)
+      FASTAPI ANALYZER API
+       (Score and categorize)
                   |
-            SORTING SYSTEM
-          (Rank by PS Score)
+          RANKING SYSTEM
                   |
-           DISPLAY RESULTS
-             FOR ALL USERS
+       DISPLAY RANKED RESULTS
+          FOR ALL USERS
 ```
 
 ## Core Features
@@ -42,21 +36,16 @@ The objective is to make problem statement evaluation and comparison simple, str
 | Module | Functionality |
 |---|---|
 | Dashboard | Central interface for the platform |
-| Admin Login | Admin authentication and password management |
-| Member Login | Member authentication |
-| Text Input | Members can submit problem statements |
-| Analyzer | Evaluates and generates a score for each PS |
+| GitHub sign-in (via Supabase) | Authenticates users |
+| Text Input | Signed-in users can submit problem statements |
+| FastAPI Analyzer API | Evaluates and scores each PS |
 | Sorting System | Automatically sorts problem statements by score |
 | Results Display | Makes ranked problem statements visible to all users |
 
 ## User Roles
 
-**Admin**
-- Access the admin dashboard.
-- Change admin password.
-
-**Member**
-- Log in to the platform.
+**Signed-in user**
+- Sign in with GitHub through Supabase.
 - Submit problem statements.
 - View ranked problem statements.
 
@@ -71,9 +60,8 @@ The development will follow a simple, structured approach without unnecessary fe
 
 ## Development
 
-This project is currently in its initial development and planning phase.
-
-Further implementation details will be documented as development progresses.
+The analyzer API, frontend, and Supabase integration are implemented. LLM scoring
+and deployment remain pending.
 
 ## Organization
 

@@ -69,7 +69,9 @@ def _mentions(text: str, keywords: Sequence[str]) -> int:
     return sum(
         1
         for keyword in keywords
-        if re.search(r"(?<!\w)" + re.escape(keyword) + r"(?!\w)", normalized)
+        if re.search(
+            r"(?<!\w)" + re.escape(keyword) + r"(?:s|es)?(?!\w)", normalized
+        )
     )
 
 
@@ -208,9 +210,10 @@ def analyze(
     similar, highest_similarity, similarity_note = _similar_problems(
         clean_text, existing_problems
     )
+    has_existing_candidates = bool(_normalize_existing_problems(existing_problems))
     llm_breakdown = _score_with_llm()
     breakdown = llm_breakdown or _rule_based_breakdown(clean_text)
-    if highest_similarity > 0:
+    if has_existing_candidates and similarity_note is None:
         breakdown["novelty"] = round((1 - highest_similarity) * 10)
 
     normalized_breakdown = {
