@@ -217,7 +217,7 @@ function App() {
                 type="button"
                 onClick={signOut}
               >
-                Log out
+                sign out
               </button>
             </>
           ) : (
