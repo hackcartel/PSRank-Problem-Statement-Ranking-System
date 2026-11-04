@@ -44,3 +44,51 @@ export async function mockAnalyze(problemStatement) {
     reason: `This ${category.toLowerCase()} challenge describes a community need. Adding specific evidence, affected groups, and measurable outcomes could strengthen the proposal.`,
   };
 }
+const ANALYZER_API_URL = (
+  import.meta.env.VITE_ANALYZER_API_URL || "http://localhost:8000"
+).replace(/\/+$/, "");
+
+export async function analyzeWithApi(problem) {
+  const response = await fetch(`${ANALYZER_API_URL}/analyze`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ problem }),
+  });
+
+  const result = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(
+      result.detail || `Analyzer request failed (${response.status})`,
+    );
+  }
+
+  // The API returns "score"; the current form displays "totalScore".
+  return {
+    ...result,
+    totalScore: result.score,
+  };
+}
+export async function rankWithApi(items, category = null) {
+  const response = await fetch(`${ANALYZER_API_URL}/rank`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      items,
+      category: category === "All" ? null : category,
+      top_n: null,
+    }),
+  });
+
+  const result = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(result.detail || `Ranking request failed (${response.status})`);
+  }
+
+  return Array.isArray(result.items) ? result.items : [];
+}
