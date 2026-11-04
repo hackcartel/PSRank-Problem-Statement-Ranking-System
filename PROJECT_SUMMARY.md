@@ -2,7 +2,7 @@
 
 Quick read for anyone who clones this repo. It covers what we are building, who owns what, the order of work from 0% to 100%, and how we work together.
 
-Last updated: 1 Nov 2026 | Target demo: 4 Nov 2026
+Last updated: 4 Nov 2026 | Target demo: 4 Nov 2026
 
 ---
 
@@ -22,14 +22,13 @@ Scope rule: build only this workflow. No extra modules. Simple and working beats
 
 | Decision | Status |
 |---|---|
-| No admin login for now, only normal email login to add PS | Decided (Yash, 1 Nov) |
-| Backend: FastAPI, database: Supabase, frontend: with Raj | Confirmed by Raj, details TBC |
-| Analyzer is a standalone Python module, easy to import | Decided |
-| Sorting: store the score, order by score (high to low) | Decided |
+| Sign-in: GitHub via Supabase | Decided |
+| Analyzer API: FastAPI; database: Supabase | Confirmed |
+| Frontend | Owned by Raj |
+| Analyzer is a standalone Python module behind a FastAPI API | Decided |
+| Ranking: order by score (high to low), with ties handled by the ranking helper | Decided |
 | Keep it simple and working (Yash) | Decided |
 | Document everything in short form | Decided |
-
-Note: the main README still mentions Admin Login. Update it once the final scope is confirmed.
 
 ---
 
@@ -37,8 +36,8 @@ Note: the main README still mentions Admin Login. Update it once the final scope
 
 | Area | Owner | Notes |
 |---|---|---|
-| Analyzer (scoring) and Sorting logic | Haroon | Python module |
-| Authentication, backend, dashboard | Raj Pandey and Ayush | FastAPI + Supabase |
+| Analyzer, ranking, and API | Haroon | Python analyzer module and FastAPI |
+| Frontend and Supabase | Raj Pandey | GitHub sign-in, data, and UI integration |
 | Backup and overview | Deven and Parv | Step in if anyone is blocked |
 | Oversight and recommendations | Sairaj and Yash | Review and validate |
 
@@ -86,7 +85,7 @@ Each step shows what must be done before it can start.
 | 10% | Everyone has repo access and works from own branch | All | 0% | 1 Nov |
 | 20% | Integration contract agreed (section 4) | Haroon + Raj | 10% | 1 Nov |
 | 35% | Analyzer v1: rule-based scoring working with 5 test PS | Haroon | 20% | 1-2 Nov |
-| 40% | Database table and email login ready | Raj + Ayush | 20% | 2 Nov |
+| 40% | Database table and GitHub sign-in via Supabase ready | Raj | 20% | 2 Nov |
 | 50% | Submit PS form saves to database | Raj + Ayush | 40% | 2 Nov |
 | 60% | Analyzer connected to backend, score saved per PS | Haroon + Raj | 35%, 50% | 2-3 Nov |
 | 70% | Sorted ranked list shown to all users | Raj + Ayush + Haroon | 60% | 3 Nov |
@@ -161,21 +160,19 @@ README.md
 
 | Milestone | Status | Updated by | Date |
 |---|---|---|---|
-| Roles and repo access | Done | Haroon | 1 Nov |
-| Integration contract | In progress | Haroon + Raj | 1 Nov |
-| Analyzer v1 | Not started | Haroon | - |
-| Database and login | In progress | Raj | 1 Nov |
-| Submit PS form | Not started | Raj + Ayush | - |
-| Integration | Not started | - | - |
-| Ranked list display | Not started | - | - |
-| Analyzer v2 | Not started | Haroon | - |
-| Testing and docs | Not started | All | - |
+| Analyzer v1 | Done | Haroon | 4 Nov |
+| Ranking | Done | Haroon | 4 Nov |
+| FastAPI analyzer API | Done | Haroon | 4 Nov |
+| Frontend | Done | Raj | 4 Nov |
+| Supabase integration | Done | Raj | 4 Nov |
+| LLM scoring | Pending | Haroon | - |
+| Deployment | Pending | All | - |
 
 ---
 
 ## 10. Definition of done (100%)
 
-- A member can log in with email and submit a PS.
+- A member can sign in with GitHub through Supabase and submit a PS.
 - The analyzer scores it and saves the result.
 - The ranked list shows for all users, highest score first.
 - Tested on at least 10 sample problem statements without crashes.

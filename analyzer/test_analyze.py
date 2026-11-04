@@ -66,6 +66,14 @@ class AnalyzeTests(unittest.TestCase):
         result = analyze("Gaon ke farmers ke liye crop health monitor karne wala agriculture app.")
         self.assertEqual(result["category"], "Agriculture")
 
+    def test_plural_keywords_match_agriculture_and_impact(self):
+        result = analyze(
+            "Farmers lose crops due to late weather alerts; build an app using open weather data."
+        )
+
+        self.assertEqual(result["category"], "Agriculture")
+        self.assertGreater(result["breakdown"]["impact"], 2)
+
     def test_duplicate_detection_and_novelty(self):
         original = "Build an app that helps farmers monitor crop health using sensor data."
         result = analyze(
@@ -77,6 +85,19 @@ class AnalyzeTests(unittest.TestCase):
         )
         self.assertEqual(result["similar"], [{"id": 12, "similarity": 1.0}])
         self.assertEqual(result["breakdown"]["novelty"], 0)
+
+    def test_unrelated_existing_problem_gives_maximum_novelty(self):
+        result = analyze(
+            "A novel tool helps farmers improve crop health.",
+            existing_problems=["An astronomy app studies distant galaxies."],
+        )
+
+        self.assertEqual(result["breakdown"]["novelty"], 10)
+
+    def test_no_existing_problems_keeps_keyword_based_novelty(self):
+        result = analyze("A novel approach helps farmers improve crop health.")
+
+        self.assertEqual(result["breakdown"]["novelty"], 6)
 
     def test_invalid_input_returns_safe_fallback(self):
         result = analyze(None)  # type: ignore[arg-type]
