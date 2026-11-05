@@ -24,10 +24,12 @@ Dashboard interface and member login screen for the PSRank internal hackathon pl
 
 The following screenshots :
 
+![PSRank member signin](psrank/docs/member_signin.png)
+![PSRank Authorization](psrank/docs/authorization.png)
 ![PSRank dashboard](psrank/docs/Dashboard.png)
-
-
-![PSRank member login](psrank/docs/member_login.png)
+![PSRank Rankings](psrank/docs/Rankings.png)
+![PSRank Submit a Problem](psrank/docs/submiting_problem.png)
+![PSRank scoring](psrank/docs/scoring.png)
 
 ## Dry-run status
 
