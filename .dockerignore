@@ -1,0 +1,9 @@
+psrank
+node_modules
+.git
+__pycache__
+*.pyc
+.env
+.env.*
+*.local
+docs

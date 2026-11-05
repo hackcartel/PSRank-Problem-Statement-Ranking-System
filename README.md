@@ -63,6 +63,17 @@ The development will follow a simple, structured approach without unnecessary fe
 The analyzer API, frontend, and Supabase integration are implemented. LLM scoring
 and deployment remain pending.
 
+## Docker (API)
+
+Build and run the analyzer API:
+
+```sh
+docker build -f analyzer/Dockerfile -t psrank-api .
+docker run --rm -p 8000:8000 -e ALLOWED_ORIGINS=http://localhost:5173 psrank-api
+```
+
+Set `ALLOWED_ORIGINS` to the URL of the frontend that will call the API.
+
 ## Organization
 
 **Developed by [HackCartel](https://github.com/HackCartel)**
