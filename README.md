@@ -249,6 +249,75 @@ python -m unittest discover -s analyzer -v
 - Add the deployed frontend URL to Supabase Auth’s allowed redirect URLs.
 - The app and API are currently configured for local development; hosting and production URLs must be configured before public deployment.
 
+## Run the full app with Docker
+
+Docker Compose runs the production-built frontend and FastAPI analyzer together. Supabase remains hosted by Supabase.
+
+1. Install and start Docker Desktop.
+2. From the repository root, create a Docker settings file:
+
+   **macOS / Linux**
+
+   ```bash
+   cp .env.docker.example .env.docker
+   ```
+
+   **Windows PowerShell**
+
+   ```powershell
+   Copy-Item .env.docker.example .env.docker
+   ```
+
+3. Open `.env.docker` and enter the Supabase project URL and publishable key. Enter your Gemini key if you want AI scoring; without it the analyzer uses rule-based scoring. Keep `.env.docker` private and never commit it.
+4. In Supabase **Authentication → URL Configuration**, add `http://localhost:8080` to the allowed redirect URLs. Set the site URL to the deployed site address when deploying beyond your computer.
+5. Start both containers from the repository root:
+
+   ```bash
+   docker compose --env-file .env.docker up --build
+   ```
+
+6. Open [http://localhost:8080](http://localhost:8080). The analyzer API is available through the same site at `/api/health`; its interactive docs are at `/api/docs`.
+
+To stop the containers, press **Ctrl+C** and run `docker compose --env-file .env.docker down` in another terminal. To rebuild after changing application code or `.env.docker`, run the `up --build` command again. The Supabase values are included in the browser build because the Supabase client runs in the frontend; only use the Supabase publishable key there. The Gemini key is passed only to the analyzer container at runtime.
+
+## Deploy the full app on Vercel
+
+Vercel can host the React frontend and FastAPI analyzer, but deploys them as separate projects rather than running the local Docker Compose stack. The frontend calls the analyzer over HTTPS; Gemini remains configured only on the backend. Vercel supports Vite deployments and FastAPI through its Python Functions runtime. See [Vite’s Vercel deployment guide](https://vite.dev/guide/static-deploy#vercel) and [Vercel’s FastAPI guide](https://vercel.com/docs/frameworks/backend/fastapi).
+
+### 1. Deploy the analyzer API
+
+1. Push the latest repository changes to GitHub, then import the repository at [vercel.com/new](https://vercel.com/new).
+2. Set **Root Directory** to `analyzer`. Vercel should detect FastAPI from `index.py` and `requirements.txt`; `index.py` exports the existing app in `api.py`.
+3. In the API project’s **Settings → Environment Variables**, add:
+
+   - `GEMINI_API_KEY` — your private Google AI Studio key. This is optional; without it, rule-based scoring is used.
+   - `GEMINI_MODEL` — a model available to your Gemini key, such as `gemini-3.5-flash-lite`.
+   - `ALLOWED_ORIGINS` — add this after deploying the frontend. Set it to the exact production origin (for example, `https://psrank-team.vercel.app`, with no trailing slash).
+
+4. Deploy the API. Copy its production URL, such as `https://psrank-analyzer.vercel.app`. Check that its `/health` path returns `{"status":"ok"}`.
+
+### 2. Deploy the frontend
+
+1. Create a second Vercel project from the same GitHub repository. Set **Root Directory** to `psrank` and let Vercel detect Vite. Use `npm run build` as the build command and `dist` as the output directory.
+2. Add these environment variables to the frontend project before deploying:
+
+   - `VITE_SUPABASE_URL` — the team Supabase project URL.
+   - `VITE_SUPABASE_PUBLISHABLE_KEY` — the Supabase publishable key. It is intended for browser use; the database remains protected by RLS. Never use the Supabase service-role key here.
+   - `VITE_ANALYZER_API_URL` — the API’s production URL from the previous step, with no trailing slash.
+
+3. Deploy the frontend and copy its production origin (for example, `https://psrank-team.vercel.app`).
+4. In the analyzer project, set `ALLOWED_ORIGINS` to that exact frontend origin and redeploy the API. This allows the browser app to call `/analyze` and `/rank`.
+
+### 3. Allow the deployed sign-in redirect
+
+In Supabase **Authentication → URL Configuration**, set the Site URL to the frontend’s production origin and add that same origin to the Redirect URLs list. Keep the GitHub OAuth provider’s callback URL set to Supabase’s callback (`https://YOUR_PROJECT_REF.supabase.co/auth/v1/callback`); do not replace it with the Vercel URL.
+
+### 4. Check the live flow
+
+Open the frontend’s production URL and verify GitHub sign-in, problem submission and analysis, the saved Supabase row, and rankings. If analysis or ranking requests fail in the browser, check that `VITE_ANALYZER_API_URL` is the API project URL and `ALLOWED_ORIGINS` exactly matches the frontend origin. Vercel environment variable changes require a new deployment because Vite embeds `VITE_` values during the build.
+
+The Docker Compose setup above remains useful for local development. Vercel runs the analyzer as a Python function rather than running the Compose stack. Vercel documents a 500 MB maximum bundle size for Python functions, so the analyzer’s scientific Python dependencies must fit within that limit.
+
 ## Screenshots
 
 The following screenshots :
